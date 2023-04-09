@@ -489,8 +489,10 @@ def create_infotext(p, all_prompts, all_seeds, all_subseeds, comments=None, iter
 
 def process_images(p: StableDiffusionProcessing) -> Processed:
     stored_opts = {k: opts.data[k] for k in p.override_settings.keys()}
+    frozen_settings = cmd_opts.freeze_settings
 
     try:
+        cmd_opts.freeze_settings = False
         for k, v in p.override_settings.items():
             setattr(opts, k, v)
 
@@ -512,6 +514,7 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
 
                 if k == 'sd_vae':
                     sd_vae.reload_vae_weights()
+        cmd_opts.freeze_settings = frozen_settings
 
     return res
 
