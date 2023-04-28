@@ -503,7 +503,10 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
                 sd_vae.reload_vae_weights()
 
         res = process_images_inner(p)
-
+    except:
+        if not p.disable_extra_networks:
+            extra_networks.deactivate(p, {})
+        raise
     finally:
         # restore opts to original state
         if p.override_settings_restore_afterwards:
