@@ -44,4 +44,7 @@ export LD_PRELOAD=libtcmalloc_minimal.so.4
 # Uncomment to enable accelerated launch
 #export ACCELERATE="True"
 
+# Uncomment to disable TCMalloc
+#export NO_TCMALLOC="True"
+
 ###########################################
