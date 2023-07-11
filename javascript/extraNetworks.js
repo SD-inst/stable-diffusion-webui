@@ -115,6 +115,8 @@ onUiLoaded(setupExtraNetworks);
 
 var re_extranet = /<([^:]+:[^:]+):[\d.]+>/;
 var re_extranet_g = /\s+<([^:]+:[^:]+):[\d.]+>/g;
+var re_extranet_model = /<model:[^:]+:[^:]+>/;
+var re_extranet_model_g = /\s+<model:[^:]+:[^:]+>/g;
 
 function tryToRemoveExtraNetworkFromPrompt(textarea, text) {
     var m = text.match(re_extranet);
@@ -123,21 +125,37 @@ function tryToRemoveExtraNetworkFromPrompt(textarea, text) {
     if (m) {
         var partToSearch = m[1];
         newTextareaText = textarea.value.replaceAll(re_extranet_g, function(found) {
-            m = found.match(re_extranet);
-            if (m[1] == partToSearch) {
-                replaced = true;
-                return "";
-            }
-            return found;
-        });
+                m = found.match(re_extranet);
+                if (m[1] == partToSearch) {
+                    replaced = true;
+                    return "";
+                }
+                return found;
+            });
     } else {
-        newTextareaText = textarea.value.replaceAll(new RegExp(text, "g"), function(found) {
-            if (found == text) {
-                replaced = true;
-                return "";
+        var r = new RegExp('\\s+' + text, 'g');
+        newTextareaText = textarea.value.replaceAll(
+            r,
+            function (found) {
+                if (found.match(r)) {
+                    replaced = true;
+                    return "";
+                }
+                return found;
             }
-            return found;
-        });
+        );
+        if (!replaced && text.match(re_extranet_model)) {
+            newTextareaText = textarea.value.replaceAll(
+                re_extranet_model_g,
+                function (found) {
+                    if (found == text) {
+                        replaced = true;
+                    }
+                    return '';
+                }
+            );
+            textarea.value = newTextareaText;
+        }
     }
 
     if (replaced) {
