@@ -618,8 +618,10 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
         p.scripts.before_process(p)
 
     stored_opts = {k: opts.data[k] for k in p.override_settings.keys()}
+    frozen_settings = cmd_opts.freeze_settings
 
     try:
+        cmd_opts.freeze_settings = False
         # if no checkpoint override or the override checkpoint can't be found, remove override entry and load opts checkpoint
         if sd_models.checkpoint_aliases.get(p.override_settings.get('sd_model_checkpoint')) is None:
             p.override_settings.pop('sd_model_checkpoint', None)
@@ -637,7 +639,10 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
         sd_models.apply_token_merging(p.sd_model, p.get_token_merging_ratio())
 
         res = process_images_inner(p)
-
+    except:
+        if not p.disable_extra_networks:
+            extra_networks.deactivate(p, {})
+        raise
     finally:
         sd_models.apply_token_merging(p.sd_model, 0)
 
@@ -648,6 +653,7 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
 
                 if k == 'sd_vae':
                     sd_vae.reload_vae_weights()
+        cmd_opts.freeze_settings = frozen_settings
 
     return res
 
