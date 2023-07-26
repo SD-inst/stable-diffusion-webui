@@ -1,5 +1,4 @@
 import inspect
-import types
 
 from pydantic import BaseModel, Field, create_model
 from typing import Any, Optional
@@ -209,13 +208,9 @@ class PreprocessResponse(BaseModel):
 fields = {}
 for key, metadata in opts.data_labels.items():
     value = opts.data.get(key)
-    if key == 'sd_model_checkpoint':
-        value = None
-    optType = opts.typemap.get(type(metadata.default), type(value))
+    optType = opts.typemap.get(type(metadata.default), type(metadata.default)) if metadata.default else Any
 
-    if optType == types.NoneType:
-        pass
-    elif metadata is not None:
+    if metadata is not None:
         fields.update({key: (Optional[optType], Field(default=metadata.default, description=metadata.label))})
     else:
         fields.update({key: (Optional[optType], Field())})

@@ -11,7 +11,7 @@ import network_full
 import torch
 from typing import Union
 
-from modules import shared, devices, sd_models, errors, scripts, sd_hijack, paths
+from modules import shared, devices, sd_models, errors, scripts, sd_hijack
 
 module_types = [
     network_lora.ModuleTypeLora(),
@@ -162,6 +162,11 @@ def load_network(name, network_on_disk):
         elif sd_module is None and "lora_te1_text_model" in key_network_without_network_parts:
             key = key_network_without_network_parts.replace("lora_te1_text_model", "0_transformer_text_model")
             sd_module = shared.sd_model.network_layer_mapping.get(key, None)
+
+            # some SD1 Loras also have correct compvis keys
+            if sd_module is None:
+                key = key_network_without_network_parts.replace("lora_te1_text_model", "transformer_text_model")
+                sd_module = shared.sd_model.network_layer_mapping.get(key, None)
 
         if sd_module is None:
             keys_failed_to_match[key_network] = key
@@ -399,7 +404,7 @@ def list_available_networks():
     os.makedirs(shared.cmd_opts.lora_dir, exist_ok=True)
 
     candidates = list(shared.walk_files(shared.cmd_opts.lora_dir, allowed_extensions=[".pt", ".ckpt", ".safetensors"]))
-    candidates += list(shared.walk_files(os.path.join(paths.models_path, "LyCORIS"), allowed_extensions=[".pt", ".ckpt", ".safetensors"]))
+    candidates += list(shared.walk_files(shared.cmd_opts.lyco_dir_backcompat, allowed_extensions=[".pt", ".ckpt", ".safetensors"]))
     for filename in candidates:
         if os.path.isdir(filename):
             continue
