@@ -10,15 +10,13 @@ import numpy as np
 import modules.scripts as scripts
 import gradio as gr
 
-from modules import images, paths, sd_samplers, processing, sd_models, sd_vae
+from modules import images, sd_samplers, processing, sd_models, sd_vae, sd_samplers_kdiffusion
 from modules.processing import process_images, Processed, StableDiffusionProcessingTxt2Img
-from modules.shared import opts, cmd_opts, state
+from modules.shared import opts, state
 import modules.shared as shared
 import modules.sd_samplers
 import modules.sd_models
 import modules.sd_vae
-import glob
-import os
 import re
 
 from modules.ui_components import ToolButton
@@ -86,7 +84,7 @@ def apply_checkpoint(p, x, xs):
     info = modules.sd_models.get_closet_checkpoint_match(x)
     if info is None:
         raise RuntimeError(f"Unknown checkpoint: {x}")
-    p.override_settings['sd_model_checkpoint'] = info.hash
+    p.override_settings['sd_model_checkpoint'] = info.name
 
 
 def confirm_checkpoints(p, xs):
@@ -144,6 +142,20 @@ def apply_face_restore(p, opt, x):
         is_active = opt in ('true', 'yes', 'y', '1')
 
     p.restore_faces = is_active
+
+
+def apply_override(field, boolean: bool = False):
+    def fun(p, x, xs):
+        if boolean:
+            x = True if x.lower() == "true" else False
+        p.override_settings[field] = x
+    return fun
+
+
+def boolean_choice(reverse: bool = False):
+    def choice():
+        return ["False", "True"] if reverse else ["True", "False"]
+    return choice
 
 
 def format_value_add_label(p, opt, x):
@@ -217,6 +229,10 @@ axis_options = [
     AxisOption("Sigma min", float, apply_field("s_tmin")),
     AxisOption("Sigma max", float, apply_field("s_tmax")),
     AxisOption("Sigma noise", float, apply_field("s_noise")),
+    AxisOption("Schedule type", str, apply_override("k_sched_type"), choices=lambda: list(sd_samplers_kdiffusion.k_diffusion_scheduler)),
+    AxisOption("Schedule min sigma", float, apply_override("sigma_min")),
+    AxisOption("Schedule max sigma", float, apply_override("sigma_max")),
+    AxisOption("Schedule rho", float, apply_override("rho")),
     AxisOption("Eta", float, apply_field("eta")),
     AxisOption("Clip skip", int, apply_clip_skip),
     AxisOption("Denoising", float, apply_field("denoising_strength")),
@@ -226,6 +242,9 @@ axis_options = [
     AxisOption("Styles", str, apply_styles, choices=lambda: list(shared.prompt_styles.styles)),
     AxisOption("UniPC Order", int, apply_uni_pc_order, cost=0.5),
     AxisOption("Face restore", str, apply_face_restore, format_value=format_value),
+    AxisOption("Token merging ratio", float, apply_override('token_merging_ratio')),
+    AxisOption("Token merging ratio high-res", float, apply_override('token_merging_ratio_hr')),
+    AxisOption("Always discard next-to-last sigma", str, apply_override('always_discard_next_to_last_sigma', boolean=True), choices=boolean_choice(reverse=True)),
 ]
 
 
@@ -316,7 +335,7 @@ def draw_xyz_grid(p, xs, ys, zs, x_labels, y_labels, z_labels, cell, draw_legend
         return Processed(p, [])
 
     z_count = len(zs)
-    sub_grids = [None] * z_count
+
     for i in range(z_count):
         start_index = (i * len(xs) * len(ys)) + i
         end_index = start_index + len(xs) * len(ys)
@@ -706,7 +725,7 @@ class Script(scripts.Script):
 
         if not include_sub_grids:
             # Done with sub-grids, drop all related information:
-            for sg in range(z_count):
+            for _ in range(z_count):
                 del processed.images[1]
                 del processed.all_prompts[1]
                 del processed.all_seeds[1]
