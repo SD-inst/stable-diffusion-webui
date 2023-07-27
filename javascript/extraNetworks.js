@@ -126,15 +126,16 @@ function tryToRemoveExtraNetworkFromPrompt(textarea, text) {
         var extraTextAfterNet = m[2];
         var partToSearch = m[1];
         var foundAtPosition = -1;
-        newTextareaText = textarea.value.replaceAll(re_extranet_g, function(found) {
-                m = found.match(re_extranet);
-                if (m[1] == partToSearch) {
-                    replaced = true;
-                    foundAtPosition = pos;
-                    return "";
-                }
-                return found;
-            });
+        newTextareaText = textarea.value.replaceAll(re_extranet_g, function(found, net, pos) {
+            m = found.match(re_extranet);
+            if (m[1] == partToSearch) {
+                replaced = true;
+                foundAtPosition = pos;
+                return "";
+            }
+            return found;
+        });
+
         if (foundAtPosition >= 0 && newTextareaText.substr(foundAtPosition, extraTextAfterNet.length) == extraTextAfterNet) {
             newTextareaText = newTextareaText.substr(0, foundAtPosition) + newTextareaText.substr(foundAtPosition + extraTextAfterNet.length);
         }
