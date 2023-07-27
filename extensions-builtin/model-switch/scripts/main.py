@@ -5,10 +5,13 @@ from modules.shared import opts
 class ExtraNetworkModel(extra_networks.ExtraNetwork):
     def __init__(self):
         super().__init__('model')
+        self.model = None
 
     def activate(self, p: StableDiffusionProcessing, params_list):
         if len(params_list) == 0:
             self.model = None
+            return
+        if self.model:
             return
         self.model = opts.sd_model_checkpoint
         opts.sd_model_checkpoint = params_list[0].items[0]
@@ -20,6 +23,7 @@ class ExtraNetworkModel(extra_networks.ExtraNetwork):
             return
         opts.sd_model_checkpoint = self.model
         sd_models.reload_model_weights()
+        self.model = None
 
 def before_ui():
     extra_networks.register_extra_network(ExtraNetworkModel())
