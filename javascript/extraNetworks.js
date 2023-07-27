@@ -143,7 +143,7 @@ function tryToRemoveExtraNetworkFromPrompt(textarea, text) {
         var r = new RegExp('\\s+' + text, 'g');
         newTextareaText = textarea.value.replaceAll(
             r,
-            function (found) {
+            function(found) {
                 if (found.match(r)) {
                     replaced = true;
                     return "";
@@ -154,7 +154,7 @@ function tryToRemoveExtraNetworkFromPrompt(textarea, text) {
         if (!replaced && text.match(re_extranet_model)) {
             newTextareaText = textarea.value.replaceAll(
                 re_extranet_model_g,
-                function (found) {
+                function(found) {
                     if (found == text) {
                         replaced = true;
                     }

@@ -1133,24 +1133,28 @@ class StableDiffusionProcessingTxt2Img(StableDiffusionProcessing):
         x = None
         devices.torch_gc()
 
-        if not self.disable_extra_networks:
+        try:
+            if not self.disable_extra_networks:
+                with devices.autocast():
+                    extra_networks.activate(self, self.hr_extra_network_data)
+
             with devices.autocast():
-                extra_networks.activate(self, self.hr_extra_network_data)
+                self.calculate_hr_conds()
 
-        with devices.autocast():
-            self.calculate_hr_conds()
+            sd_models.apply_token_merging(self.sd_model, self.get_token_merging_ratio(for_hr=True))
 
-        sd_models.apply_token_merging(self.sd_model, self.get_token_merging_ratio(for_hr=True))
+            if self.scripts is not None:
+                self.scripts.before_hr(self)
 
-        if self.scripts is not None:
-            self.scripts.before_hr(self)
+            samples = self.sampler.sample_img2img(self, samples, noise, self.hr_c, self.hr_uc, steps=self.hr_second_pass_steps or self.steps, image_conditioning=image_conditioning)
 
-        samples = self.sampler.sample_img2img(self, samples, noise, self.hr_c, self.hr_uc, steps=self.hr_second_pass_steps or self.steps, image_conditioning=image_conditioning)
+            sd_models.apply_token_merging(self.sd_model, self.get_token_merging_ratio())
 
-        sd_models.apply_token_merging(self.sd_model, self.get_token_merging_ratio())
-
-        self.is_hr_pass = False
-
+            self.is_hr_pass = False
+        finally:
+            if not self.disable_extra_networks:
+                with devices.autocast():
+                    extra_networks.deactivate(self, self.hr_extra_network_data)
         return samples
 
     def close(self):
