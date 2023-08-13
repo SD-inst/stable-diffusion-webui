@@ -20,7 +20,23 @@ class ExtraNetworkModel(extra_networks.ExtraNetwork):
         opts.sd_model_checkpoint = self.model
         sd_models.reload_model_weights()
 
+class ExtraNetworkClipSkip(extra_networks.ExtraNetwork):
+    def __init__(self):
+        super().__init__('cs')
+        self.cs = int(opts.CLIP_stop_at_last_layers)
+
+    def activate(self, p: StableDiffusionProcessing, params_list):
+        if len(params_list) == 0:
+            return
+
+        opts.CLIP_stop_at_last_layers = int(params_list[0].items[0])
+
+    def deactivate(self, p: StableDiffusionProcessing):
+        opts.CLIP_stop_at_last_layers = self.cs
+
+
 def before_ui():
     extra_networks.register_extra_network(ExtraNetworkModel())
+    extra_networks.register_extra_network(ExtraNetworkClipSkip())
 
 script_callbacks.on_before_ui(before_ui)
