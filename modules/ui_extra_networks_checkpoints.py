@@ -18,6 +18,7 @@ class ExtraNetworksPageCheckpoints(ui_extra_networks.ExtraNetworksPage):
         return {
             "name": checkpoint.name_for_extra,
             "filename": checkpoint.filename,
+            "shorthash": checkpoint.shorthash,
             "preview": self.find_preview(path),
             "description": self.find_description(path),
             "search_term": self.search_terms_from_path(checkpoint.filename) + " " + (checkpoint.sha256 or ""),
@@ -28,7 +29,8 @@ class ExtraNetworksPageCheckpoints(ui_extra_networks.ExtraNetworksPage):
         }
 
     def list_items(self):
-        for index, name in enumerate(sd_models.checkpoints_list):
+        names = list(sd_models.checkpoints_list)
+        for index, name in enumerate(names):
             yield self.create_item(name, index)
 
     def allowed_directories_for_previews(self):
