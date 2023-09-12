@@ -517,6 +517,11 @@ table.popup-table .link{
     background: #b4c0cc;
     border-radius: 3px !important;
     top: -20px;
+    width: 100%;
+}
+
+.progress-container{
+    position: relative;
 }
 
 [id$=_results].mobile{
@@ -621,6 +626,9 @@ table.popup-table .link{
 
 .modalControls {
     display: flex;
+    position: absolute;
+    right: 0px;
+    left: 0px;
     gap: 1em;
     padding: 1em;
     background-color: rgba(0,0,0,0.2);
@@ -996,6 +1004,8 @@ div.block.gradio-box.edit-user-metadata {
 
 .edit-user-metadata .file-metadata th, .edit-user-metadata .file-metadata td{
     padding: 0.3em 1em;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .edit-user-metadata .wrap.translucent{
