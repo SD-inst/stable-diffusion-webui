@@ -11,6 +11,8 @@ class ExtraNetworkModel(extra_networks.ExtraNetwork):
         if len(params_list) == 0:
             return
 
+        if p.is_hr_pass and p.hr_checkpoint_name is not None:
+            return
         opts.sd_model_checkpoint = params_list[0].items[0]
         sd_models.reload_model_weights()
 
