@@ -22,7 +22,6 @@ from modules.sd_hijack import model_hijack
 from modules.sd_samplers_common import images_tensor_to_samples, decode_first_stage, approximation_indexes
 from modules.shared import opts, cmd_opts, state
 import modules.shared as shared
-import modules.paths as paths
 import modules.face_restoration
 import modules.images as images
 import modules.styles
@@ -849,15 +848,6 @@ def process_images_inner(p: StableDiffusionProcessing) -> Processed:
 
             if p.scripts is not None:
                 p.scripts.process_batch(p, batch_number=n, prompts=p.prompts, seeds=p.seeds, subseeds=p.subseeds)
-
-            # params.txt should be saved after scripts.process_batch, since the
-            # infotext could be modified by that callback
-            # Example: a wildcard processed by process_batch sets an extra model
-            # strength, which is saved as "Model Strength: 1.0" in the infotext
-            if n == 0:
-                with open(os.path.join(paths.data_path, "params.txt"), "w", encoding="utf8") as file:
-                    processed = Processed(p, [])
-                    file.write(processed.infotext(p, 0))
 
             p.setup_conds()
 
