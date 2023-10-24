@@ -71,15 +71,8 @@ def progressapi(req: ProgressRequest):
     queued = req.id_task in pending_tasks
     completed = req.id_task in finished_tasks
 
-    if not active:
-        textinfo = "Waiting..."
-        if queued:
-            sorted_queued = sorted(pending_tasks.keys(), key=lambda x: pending_tasks[x])
-            queue_index = sorted_queued.index(req.id_task)
-            textinfo = "In queue: {}/{}".format(queue_index + 1, len(sorted_queued))
-        return ProgressResponse(active=active, queued=queued, completed=completed, id_live_preview=-1, textinfo=textinfo)
-
     progress = 0
+    eta = 0
 
     job_count, job_no = shared.state.job_count, shared.state.job_no
     sampling_steps, sampling_step = shared.state.sampling_steps, shared.state.sampling_step
@@ -91,9 +84,18 @@ def progressapi(req: ProgressRequest):
 
     progress = min(progress, 1)
 
-    elapsed_since_start = time.time() - shared.state.time_start
-    predicted_duration = elapsed_since_start / progress if progress > 0 else None
-    eta = predicted_duration - elapsed_since_start if predicted_duration is not None else None
+    if shared.state.time_start is not None:
+        elapsed_since_start = time.time() - shared.state.time_start
+        predicted_duration = elapsed_since_start / progress if progress > 0 else None
+        eta = predicted_duration - elapsed_since_start if predicted_duration is not None else None
+
+    if not active:
+        textinfo = "Waiting..."
+        if queued:
+            sorted_queued = sorted(pending_tasks.keys(), key=lambda x: pending_tasks[x])
+            queue_index = sorted_queued.index(req.id_task)
+            textinfo = "In queue: {}/{}".format(queue_index + 1, len(sorted_queued))
+        return ProgressResponse(active=active, queued=queued, completed=completed, id_live_preview=-1, textinfo=textinfo, eta=eta)
 
     live_preview = None
     id_live_preview = req.id_live_preview
