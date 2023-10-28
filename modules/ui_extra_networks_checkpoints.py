@@ -23,6 +23,7 @@ class ExtraNetworksPageCheckpoints(ui_extra_networks.ExtraNetworksPage):
             "description": self.find_description(path),
             "search_term": self.search_terms_from_path(checkpoint.filename) + " " + (checkpoint.sha256 or ""),
             "prompt": json.dumps(f"<model:{checkpoint.shorthash}:{checkpoint.model_name}>"),
+            "insertBeforeOthers": True,
             "local_preview": f"{path}.{shared.opts.samples_format}",
             "metadata": checkpoint.metadata,
             "sort_keys": {'default': index, **self.get_sort_keys(checkpoint.filename)},

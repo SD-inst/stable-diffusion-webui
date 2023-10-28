@@ -141,9 +141,9 @@ function setupExtraNetworks() {
 onUiLoaded(setupExtraNetworks);
 
 var re_extranet = /<([^:]+:[^:]+):[\d.]+>(.*)/;
-var re_extranet_g = /\s+<([^:]+:[^:]+):[\d.]+>/g;
+var re_extranet_g = /(?:\s+|^)<([^:]+:[^:]+):[\d.]+>/g;
 var re_extranet_model = /<model:[^:]+:[^:]+>/;
-var re_extranet_model_g = /\s+<model:[^:]+:[^:]+>/g;
+var re_extranet_model_g = /(?:\s+|^)<model:[^:]+:[^:]+>/g;
 
 function tryToRemoveExtraNetworkFromPrompt(textarea, text) {
     var m = text.match(re_extranet);
@@ -200,11 +200,30 @@ function tryToRemoveExtraNetworkFromPrompt(textarea, text) {
     return false;
 }
 
-function cardClicked(tabname, textToAdd, allowNegativePrompt) {
+function cardClicked(tabname, textToAdd, allowNegativePrompt, insertBeforeOthers) {
     var textarea = allowNegativePrompt ? activePromptTextarea[tabname] : gradioApp().querySelector("#" + tabname + "_prompt > label > textarea");
 
     if (!tryToRemoveExtraNetworkFromPrompt(textarea, textToAdd)) {
-        textarea.value = textarea.value + opts.extra_networks_add_text_separator + textToAdd;
+        if (!insertBeforeOthers) {
+            textarea.value =
+                textarea.value +
+                opts.extra_networks_add_text_separator +
+                textToAdd;
+        } else {
+            var firstTagPos = textarea.value.indexOf('<');
+            if (firstTagPos < 0) {
+                textarea.value =
+                    textarea.value +
+                    opts.extra_networks_add_text_separator +
+                    textToAdd;
+            } else {
+                textarea.value =
+                    textarea.value.substring(0, firstTagPos) +
+                    textToAdd +
+                    opts.extra_networks_add_text_separator +
+                    textarea.value.substring(firstTagPos);
+            }
+        }
     }
 
     updateInput(textarea);
