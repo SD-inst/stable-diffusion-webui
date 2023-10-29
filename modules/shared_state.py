@@ -71,12 +71,16 @@ class State:
         self.server_command = "restart"
         log.info("Received restart request")
 
-    def skip(self):
-        self.skipped = True
+    def skip(self, id_task):
+        from modules.progress import current_task
+        if current_task == id_task:
+            self.skipped = True
         log.info("Received skip request")
 
-    def interrupt(self):
-        self.interrupted = True
+    def interrupt(self, id_task):
+        from modules.progress import current_task
+        if current_task == id_task:
+            self.interrupted = True
         log.info("Received interrupt request")
 
     def nextjob(self):

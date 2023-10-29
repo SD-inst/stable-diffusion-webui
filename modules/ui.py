@@ -202,16 +202,22 @@ class Toprow:
                     self.skip = gr.Button('Skip', elem_id=f"{id_part}_skip", elem_classes="generate-box-skip")
                     self.submit = gr.Button('Generate', elem_id=f"{id_part}_generate", variant='primary')
 
+                    task_id = gr.Label(visible=False)
+
                     self.skip.click(
-                        fn=lambda: shared.state.skip(),
-                        inputs=[],
-                        outputs=[],
+                        _js="() => [localGet('" + id_part + "_task_id')]",
+                        fn=lambda id: shared.state.skip(id),
+                        inputs=[task_id],
+                        outputs=[task_id],
+                        queue=False,
                     )
 
                     self.interrupt.click(
-                        fn=lambda: shared.state.interrupt(),
-                        inputs=[],
-                        outputs=[],
+                        _js="() => [localGet('" + id_part + "_task_id')]",
+                        fn=lambda id: shared.state.interrupt(id),
+                        inputs=[task_id],
+                        outputs=[task_id],
+                        queue=False,
                     )
 
                 with gr.Row(elem_id=f"{id_part}_tools"):
