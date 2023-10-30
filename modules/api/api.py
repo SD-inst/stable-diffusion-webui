@@ -21,6 +21,7 @@ from modules import sd_samplers, deepbooru, sd_hijack, images, scripts, ui, post
 from modules.api import models
 from modules.shared import opts
 from modules.processing import StableDiffusionProcessingTxt2Img, StableDiffusionProcessingImg2Img, process_images
+from modules.progress import pending_tasks
 from modules.textual_inversion.textual_inversion import create_embedding, train_embedding
 from modules.textual_inversion.preprocess import preprocess
 from modules.hypernetworks.hypernetwork import create_hypernetwork, train_hypernetwork
@@ -491,7 +492,7 @@ class Api:
         # copy from check_progress_call of ui.py
 
         if shared.state.job_count == 0:
-            return models.ProgressResponse(progress=0, eta_relative=0, state=shared.state.dict(), textinfo=shared.state.textinfo)
+            return models.ProgressResponse(progress=0, eta_relative=0, state=shared.state.dict(), textinfo=shared.state.textinfo, queue_size=0)
 
         # avoid dividing zero
         progress = 0.01
@@ -513,7 +514,7 @@ class Api:
         if shared.state.current_image and not req.skip_current_image:
             current_image = encode_pil_to_base64(shared.state.current_image)
 
-        return models.ProgressResponse(progress=progress, eta_relative=eta_relative, state=shared.state.dict(), current_image=current_image, textinfo=shared.state.textinfo)
+        return models.ProgressResponse(progress=progress, eta_relative=eta_relative, state=shared.state.dict(), current_image=current_image, textinfo=shared.state.textinfo, queue_size=len(pending_tasks))
 
     def interrogateapi(self, interrogatereq: models.InterrogateRequest):
         image_b64 = interrogatereq.image
