@@ -316,6 +316,15 @@ def create_override_settings_dropdown(tabname, row):
         inputs=[dropdown],
         outputs=[dropdown],
     )
+    def update(x: str, dd):
+        params = dict([e.split(': ')[0], e.split(': ')[1]] for e in dd)
+        parts = x.split('|')
+        params["Model"] = parts[1]
+        params["Model hash"] = parts[0]
+        return gr.Dropdown.update(value=[e + ': ' + params[e] for e in params.keys()], choices=params)
+
+    control = gr.Textbox(elem_id="override_settings_control", visible=False)
+    control.input(fn=update, inputs=[control, dropdown], outputs=[dropdown])
 
     return dropdown
 
