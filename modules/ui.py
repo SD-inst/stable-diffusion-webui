@@ -321,11 +321,9 @@ def create_override_settings_dropdown(tabname, row):
         parts = x.split('|')
         params["Model"] = parts[1]
         params["Model hash"] = parts[0]
-        choices = params.copy()
-        choices["Clip skip"] = "2"
         def toVals(a):
             return [e + ': ' + a[e] for e in a.keys()]
-        return gr.Dropdown.update(value=toVals(params), choices=toVals(choices))
+        return gr.Dropdown.update(value=toVals(params), choices=toVals(params))
 
     control = gr.Textbox(elem_id="override_settings_control", visible=False)
     control.input(fn=update, inputs=[control, dropdown], outputs=[dropdown])
