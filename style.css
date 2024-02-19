@@ -665,6 +665,7 @@ table.popup-table .link{
     user-select: none;
     -webkit-user-select: none;
     flex-direction: column;
+    background-size: 20%;
 }
 
 .modalControls {
