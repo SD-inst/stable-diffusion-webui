@@ -40,3 +40,4 @@ notification.mp3
 *.un~
 *.whl
 *.bz2
+/test/test_outputs

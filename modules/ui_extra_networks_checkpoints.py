@@ -19,13 +19,16 @@ class ExtraNetworksPageCheckpoints(ui_extra_networks.ExtraNetworksPage):
             return
 
         path, ext = os.path.splitext(checkpoint.filename)
+        search_terms = [self.search_terms_from_path(checkpoint.filename)]
+        if checkpoint.sha256:
+            search_terms.append(checkpoint.sha256)
         return {
             "name": checkpoint.name_for_extra,
             "filename": checkpoint.filename,
             "shorthash": checkpoint.shorthash,
             "preview": self.find_preview(path),
             "description": self.find_description(path),
-            "search_term": self.search_terms_from_path(checkpoint.filename) + " " + (checkpoint.sha256 or ""),
+            "search_terms": search_terms,
             "onclick": '"' + f"""var ta = get_uiCurrentTabContent().querySelector('#override_settings_control textarea');
                 ta.value = '{checkpoint.shorthash}|{checkpoint.name_for_extra}';
                 ta.dispatchEvent(new Event('input'));
