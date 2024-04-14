@@ -190,10 +190,8 @@ def configure_opts_onchange():
 
 
 def setup_middleware(app):
-    from starlette.middleware.gzip import GZipMiddleware
 
     app.middleware_stack = None  # reset current middleware to allow modifying user provided list
-    app.add_middleware(GZipMiddleware, minimum_size=1000)
     configure_cors_middleware(app)
     app.build_middleware_stack()  # rebuild middleware stack on-the-fly
 
