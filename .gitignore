@@ -41,3 +41,4 @@ notification.mp3
 *.whl
 *.bz2
 /test/test_outputs
+/cache
