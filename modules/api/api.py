@@ -32,7 +32,7 @@ from typing import Any
 import piexif
 import piexif.helper
 from contextlib import closing
-from modules.progress import create_task_id, add_task_to_queue, start_task, finish_task, current_task
+from modules.progress import create_task_id, add_task_to_queue, start_task, finish_task
 
 def script_name_to_index(name, scripts):
     try:

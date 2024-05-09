@@ -30,7 +30,6 @@ class ExtraNetworksPageCheckpoints(ui_extra_networks.ExtraNetworksPage):
             "preview": self.find_preview(path),
             "description": self.find_description(path),
             "search_terms": search_terms,
-            "onclick": html.escape(f"return selectCheckpoint({ui_extra_networks.quote_js(name)})"),
             "onclick": html.escape(f"""var ta = get_uiCurrentTabContent().querySelector('#override_settings_control textarea');
                 ta.value = '{checkpoint.shorthash}|{checkpoint.name_for_extra}';
                 ta.dispatchEvent(new Event('input'));
