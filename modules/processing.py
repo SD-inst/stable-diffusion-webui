@@ -822,8 +822,10 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
         p.scripts.before_process(p)
 
     stored_opts = {k: opts.data[k] if k in opts.data else opts.get_default(k) for k in p.override_settings.keys() if k in opts.data}
+    frozen_settings = cmd_opts.freeze_settings
 
     try:
+        cmd_opts.freeze_settings = False
         # if no checkpoint override or the override checkpoint can't be found, remove override entry and load opts checkpoint
         # and if after running refiner, the refiner model is not unloaded - webui swaps back to main model here, if model over is present it will be reloaded afterwards
         if sd_models.checkpoint_aliases.get(p.override_settings.get('sd_model_checkpoint')) is None:
@@ -853,6 +855,7 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
 
                 if k == 'sd_vae':
                     sd_vae.reload_vae_weights()
+        cmd_opts.freeze_settings = frozen_settings
 
     return res
 
