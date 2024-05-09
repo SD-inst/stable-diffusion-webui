@@ -1,3 +1,4 @@
+import html
 import os
 
 from modules import shared, ui_extra_networks, sd_models
@@ -29,10 +30,11 @@ class ExtraNetworksPageCheckpoints(ui_extra_networks.ExtraNetworksPage):
             "preview": self.find_preview(path),
             "description": self.find_description(path),
             "search_terms": search_terms,
-            "onclick": '"' + f"""var ta = get_uiCurrentTabContent().querySelector('#override_settings_control textarea');
+            "onclick": html.escape(f"return selectCheckpoint({ui_extra_networks.quote_js(name)})"),
+            "onclick": html.escape(f"""var ta = get_uiCurrentTabContent().querySelector('#override_settings_control textarea');
                 ta.value = '{checkpoint.shorthash}|{checkpoint.name_for_extra}';
                 ta.dispatchEvent(new Event('input'));
-                get_uiCurrentTabContent().querySelector('.extra-networks > .tab-nav > button:nth-child(1)').click()""" + '"',
+                get_uiCurrentTabContent().querySelector('.extra-networks > .tab-nav > button:nth-child(1)').click()"""),
             "local_preview": f"{path}.{shared.opts.samples_format}",
             "metadata": checkpoint.metadata,
             "sort_keys": {'default': index, **self.get_sort_keys(checkpoint.filename)},
