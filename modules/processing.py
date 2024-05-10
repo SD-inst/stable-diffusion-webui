@@ -818,6 +818,9 @@ def create_infotext(p, all_prompts, all_seeds, all_subseeds, comments=None, iter
 
 
 def process_images(p: StableDiffusionProcessing) -> Processed:
+    if cmd_opts.service_lock_url:
+        import requests
+        requests.post(f"{cmd_opts.service_lock_url}/internal/join")
     if p.scripts is not None:
         p.scripts.before_process(p)
 
@@ -857,6 +860,8 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
                     sd_vae.reload_vae_weights()
         cmd_opts.freeze_settings = frozen_settings
 
+    if cmd_opts.service_lock_url:
+        requests.post(f"{cmd_opts.service_lock_url}/internal/leave")
     return res
 
 
