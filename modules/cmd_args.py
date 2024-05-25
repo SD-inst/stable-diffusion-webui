@@ -126,3 +126,4 @@ parser.add_argument("--unix-filenames-sanitization", action='store_true', help="
 parser.add_argument("--filenames-max-length", type=int, default=128, help='maximal length of filenames of saved images. If you override it, it can conflict with your file system')
 parser.add_argument("--no-prompt-history", action='store_true', help="disable read prompt from last generation feature; settings this argument will not create '--data_path/params.txt' file")
 parser.add_argument("--service-lock-url", type=str, help="make empty POST requests to this URL with path /internal/join on image generation start and /internal/leave when it finishes. Used to block (delay) generation, for example if another VRAM-hungry service is active, the actual block implementation is up to you.")
+parser.add_argument("--force-hashing", action="store_true", help="force sha256 hashing of checkpoints during listing them", default=False)

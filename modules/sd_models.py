@@ -165,6 +165,8 @@ def list_models():
     for filename in model_list:
         checkpoint_info = CheckpointInfo(filename)
         checkpoint_info.register()
+        if shared.cmd_opts.force_hashing:
+            hashes.sha256(filename, f"checkpoint/{checkpoint_info.name}")
 
 
 re_strip_checksum = re.compile(r"\s*\[[^]]+]\s*$")
