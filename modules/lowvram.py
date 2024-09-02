@@ -18,7 +18,7 @@ def send_everything_to_cpu():
 
 
 def is_needed(sd_model):
-    return shared.cmd_opts.lowvram or shared.cmd_opts.medvram or shared.cmd_opts.medvram_sdxl and hasattr(sd_model, 'conditioner')
+    return shared.cmd_opts.lowvram or shared.cmd_opts.medvram or shared.cmd_opts.medvram_sdxl and hasattr(sd_model, 'conditioner') or shared.cmd_opts.medvram_mdit and hasattr(sd_model, 'latent_channels') and sd_model.latent_channels > 4
 
 
 def apply(sd_model):
