@@ -107,7 +107,7 @@ class FluxCond(torch.nn.Module):
             with safetensors.safe_open(clip_l_file, framework="pt") as file:
                 self.clip_l.transformer.load_state_dict(SafetensorsMapping(file), strict=False)
 
-        if self.t5xxl and 'text_encoders.t5xxl.transformer.encoder.block.0.layer.0.SelfAttention.k.weight' not in state_dict:
+        if self.t5xxl:
             t5_file = modelloader.load_file_from_url(T5_URL, model_dir=clip_path, file_name="t5xxl_fp16.safetensors")
             with safetensors.safe_open(t5_file, framework="pt") as file:
                 self.t5xxl.transformer.load_state_dict(SafetensorsMapping(file), strict=False)
