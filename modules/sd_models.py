@@ -284,6 +284,30 @@ def get_state_dict_from_checkpoint(pl_sd):
     return pl_sd
 
 
+def fix_unet_prefix(state_dict):
+    known_prefixes = ("model.diffusion_model.", "first_stage_model.", "cond_stage_model.", "conditioner", "vae.", "text_encoders.")
+
+    for k in state_dict.keys():
+        found = [prefix for prefix in known_prefixes if k.startswith(prefix)]
+        if len(found) > 0:
+            return state_dict
+
+    # no known prefix found.
+    # in this case, this is a unet only state_dict
+    known_keys = (
+        "input_blocks.0.0.weight", # SD1.5, SD2, SDXL
+        "joint_blocks.0.context_block.adaLN_modulation.1.weight", # SD3
+        "double_blocks.0.img_attn.proj.weight", # FLUX
+    )
+
+    if any(key in state_dict for key in known_keys):
+        state_dict = {f"model.diffusion_model.{k}": v for k, v in state_dict.items()}
+        print("Fixed state_dict keys...")
+        return state_dict
+
+    return state_dict
+
+
 def read_metadata_from_safetensors(filename):
     import json
 
@@ -345,6 +369,7 @@ def get_checkpoint_state_dict(checkpoint_info: CheckpointInfo, timer):
 
     print(f"Loading weights [{sd_model_hash}] from {checkpoint_info.filename}")
     res = read_state_dict(checkpoint_info.filename)
+    res = fix_unet_prefix(res)
     timer.record("load weights from disk")
 
     return res
@@ -471,6 +496,25 @@ def get_vae_dtype(state_dict=None, state_dict_dtype=None):
     return None
 
 
+def fix_position_ids(state_dict, force=False):
+    # for SD1.5 or some SDXL with position_ids
+    for prefix in ("cond_stage_models.", "conditioner.embedders.0."):
+        position_id_key = f"{prefix}transformer.text_model.embeddings.position_ids"
+        if position_id_key in state_dict:
+            original = state_dict[position_id_key]
+            if original.dtype == torch.int64:
+                return
+
+            if force:
+                # regenerate
+                fixed = torch.tensor([list(range(77))], dtype=torch.int64, device=original.device)
+            else:
+                fixed = state_dict[position_id_key].to(torch.int64)
+                print(f"Warning: Fixed position_ids dtype from {original.dtype} to {fixed.dtype}")
+
+            state_dict[position_id_key] = fixed
+
+
 def load_model_weights(model, checkpoint_info: CheckpointInfo, state_dict, timer):
     sd_model_hash = checkpoint_info.calculate_shorthash()
     timer.record("calculate hash")
@@ -487,6 +531,9 @@ def load_model_weights(model, checkpoint_info: CheckpointInfo, state_dict, timer
 
     set_model_type(model, state_dict)
     set_model_fields(model)
+
+    fix_position_ids(state_dict)
+
 
     if model.is_sdxl:
         sd_models_xl.extend_sdxl(model)
@@ -561,7 +608,7 @@ def load_model_weights(model, checkpoint_info: CheckpointInfo, state_dict, timer
 
         if found_unet_dtype in (torch.float16, torch.float32, torch.bfloat16):
             model.half()
-        elif found_unet_dtype in (torch.float8_e4m3fn,):
+        elif found_unet_dtype in (torch.float8_e4m3fn, torch.float8_e5m2):
             pass
         else:
             print("Fail to get a vaild UNet dtype. ignore...")
@@ -588,7 +635,7 @@ def load_model_weights(model, checkpoint_info: CheckpointInfo, state_dict, timer
         if hasattr(module, 'fp16_bias'):
             del module.fp16_bias
 
-    if found_unet_dtype not in (torch.float8_e4m3fn,) and check_fp8(model):
+    if found_unet_dtype not in (torch.float8_e4m3fn,torch.float8_e5m2) and check_fp8(model):
         devices.fp8 = True
 
         # do not convert vae, text_encoders.clip_l, clip_g, t5xxl
