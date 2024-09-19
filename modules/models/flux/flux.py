@@ -107,8 +107,8 @@ class FluxCond(torch.nn.Module):
             with safetensors.safe_open(clip_l_file, framework="pt") as file:
                 self.clip_l.transformer.load_state_dict(SafetensorsMapping(file), strict=False)
 
-        if self.t5xxl:
-            t5_file = modelloader.load_file_from_url(T5_URL, model_dir=clip_path, file_name="t5xxl_fp16.safetensors")
+        if self.t5xxl and 'text_encoders.t5xxl.transformer.encoder.block.0.layer.0.SelfAttention.k.weight' not in state_dict:
+            t5_file = modelloader.load_file_from_url(T5_URL, model_dir=clip_path, file_name="t5xxl_fp8_e4m3fn.safetensors")
             with safetensors.safe_open(t5_file, framework="pt") as file:
                 self.t5xxl.transformer.load_state_dict(SafetensorsMapping(file), strict=False)
 
@@ -360,4 +360,4 @@ class FLUX1Inferencer(torch.nn.Module):
             yield f"transformer.single_transformer_blocks.{i}.proj_mlp",  f"diffusion_model_single_blocks_{i}_linear1_mlp_proj"
 
             yield f"transformer.single_transformer_blocks.{i}.proj_out", f"diffusion_model_single_blocks_{i}_linear2"
-            yield f"transformer.single_transformer_blocks.{i}.morm.linear", f"diffusion_model_single_blocks_{i}_modulation_lin"
+            yield f"transformer.single_transformer_blocks.{i}.norm.linear", f"diffusion_model_single_blocks_{i}_modulation_lin"
