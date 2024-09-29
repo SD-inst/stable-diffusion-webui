@@ -1111,6 +1111,8 @@ def reuse_model_from_already_loaded(sd_model, checkpoint_info, timer):
 
 
 def reload_model_weights(sd_model=None, info=None, forced_reload=False):
+    import gc
+    gc.collect()
     checkpoint_info = info or select_checkpoint()
 
     timer = Timer()
